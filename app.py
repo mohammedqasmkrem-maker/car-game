@@ -1,108 +1,133 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# إعدادات الصفحة الأساسية - ضرورية جداً
-st.set_page_config(page_title="Pro Racer", layout="centered")
+# إعداد الصفحة
+st.set_page_config(page_title="Royal Racer Hub", layout="centered")
 
-# منع الهوامش البيضاء اللي تخرب التصميم
+# --- تصميم الواجهة الملكية (CSS) ---
 st.markdown("""
     <style>
-    .stApp { background-color: #000; color: white; }
-    iframe { border-radius: 15px; box-shadow: 0 0 20px #0ff; }
+    /* إضافة خلفية ملكية للصورة */
+    .stApp {
+        background-image: url("https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+    
+    /* جعل الحاويات شفافة وزجاجية */
+    .main-box {
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        border-radius: 25px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    
+    /* تصميم الأزرار الملكية */
+    .stButton>button {
+        background: linear-gradient(45deg, #FFD700, #FFA500);
+        color: black !important;
+        border-radius: 50px;
+        border: none;
+        font-weight: bold;
+        font-size: 20px;
+        height: 3em;
+        transition: 0.3s;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    }
+    .stButton>button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# نظام الغرف (التنقل)
+# نظام التنقل بين الغرف
 if 'page' not in st.session_state:
-    st.session_state.page = 'main'
+    st.session_state.page = 'home'
 
-def go(p):
+def navigate(p):
     st.session_state.page = p
 
-# --- الغرفة 1: الرئيسية ---
-if st.session_state.page == 'main':
-    st.markdown("<h1 style='text-align:center; color:#0ff;'>🏎️ TRAFFIC RACER PRO</h1>", unsafe_allow_html=True)
-    st.write("---")
-    if st.button("🏁 ابدأ السباق الآن", use_container_width=True):
-        go('play')
-    if st.button("🛠️ دخول الكراج", use_container_width=True):
-        go('garage')
-    st.image("https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=500", caption="جاهز للتحدي؟")
+# --- الغرفة 1: الواجهة الملكية (Home) ---
+if st.session_state.page == 'home':
+    st.markdown('<div class="main-box">', unsafe_allow_html=True)
+    st.markdown("<h1 style='color: #FFD700; text-shadow: 2px 2px 5px #000;'>ROYAL TRAFFIC RACER</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color: white;'>مرحباً بك في عالم الفخامة والسرعة</p>", unsafe_allow_html=True)
+    
+    if st.button("🏁 دخول الميدان الملكي"):
+        navigate('game')
+    if st.button("🛠️ كراج النخبة"):
+        navigate('garage')
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# --- الغرفة 2: الكراج ---
+# --- الغرفة 2: الكراج (التعديل) ---
 elif st.session_state.page == 'garage':
+    st.markdown('<div class="main-box">', unsafe_allow_html=True)
     st.header("🛠️ كراج التعديلات")
-    st.color_picker("اختر لون السيارة النيون", "#00f2fe")
-    st.select_slider("تطوير المحرك", ["V6", "V8", "V10", "V12"])
-    if st.button("⬅️ العودة للرئيسية"):
-        go('main')
+    st.write("خصص سيارتك لتناسب ذوقك الملكي")
+    
+    color = st.color_picker("اختر لون السيارة", "#FFD700")
+    engine = st.selectbox("المحرك", ["V8 Bi-Turbo", "V12 Gold Edition"])
+    
+    if st.button("✅ حفظ التعديلات والعودة"):
+        navigate('home')
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# --- الغرفة 3: اللعب (الكود اللي مستحيل يطلع فارغ) ---
-elif st.session_state.page == 'play':
-    # كود HTML/JS معزول تماماً ومبني داخل الصفحة
+# --- الغرفة 3: اللعبة (بدون مشاكل برمجية) ---
+elif st.session_state.page == 'game':
+    st.markdown('<div class="main-box" style="padding: 10px;">', unsafe_allow_html=True)
+    
+    # اللعبة داخل إطار زجاجي
     game_html = """
     <!DOCTYPE html>
     <html>
     <head>
         <style>
-            body { margin: 0; background: #111; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
-            #c { border: 2px solid #0ff; background: #222; touch-action: none; cursor: crosshair; }
-            .ui { color: #0ff; font-size: 20px; margin: 10px; font-weight: bold; }
+            body { margin: 0; background: transparent; display: flex; flex-direction: column; align-items: center; }
+            canvas { border: 3px solid #FFD700; border-radius: 15px; background: #222; }
+            .info { color: #FFD700; font-family: sans-serif; font-size: 22px; margin-bottom: 10px; font-weight: bold; }
         </style>
     </head>
     <body>
-        <div class="ui">SCORE: <span id="s">0</span> | ❤️: <span id="l">3</span></div>
-        <canvas id="c" width="320" height="480"></canvas>
+        <div class="info">POINTS: <span id="s">0</span></div>
+        <canvas id="g" width="320" height="480"></canvas>
         <script>
-            const canvas = document.getElementById("c");
+            const canvas = document.getElementById("g");
             const ctx = canvas.getContext("2d");
+            let x = 135, score = 0, enemies = [];
             
-            let player = { x: 135, y: 380, w: 50, h: 80 };
-            let score = 0, lives = 3, enemies = [], speed = 5;
-
             function draw() {
-                ctx.fillStyle = "#222"; ctx.fillRect(0,0,320,480);
+                ctx.fillStyle = "#111"; ctx.fillRect(0,0,320,480);
+                // رسم سيارة ذهبية مبسطة
+                ctx.fillStyle = "#FFD700"; ctx.fillRect(x, 380, 50, 80);
                 
-                // خطوط الطريق
-                ctx.strokeStyle = "#444"; ctx.setLineDash([20, 20]);
-                ctx.beginPath(); ctx.moveTo(160,0); ctx.lineTo(160,480); ctx.stroke();
-
-                // رسم اللاعب (سيارة بيك آب زرقاء بالرسم)
-                ctx.fillStyle = "#00f2fe";
-                ctx.fillRect(player.x, player.y, 50, 80); 
-                ctx.fillStyle = "#000"; ctx.fillRect(player.x+5, player.y+10, 40, 20); // الزجاج
-
-                // الأعداء
-                if(Math.random() < 0.02) enemies.push({ x: Math.random()*270, y: -100 });
+                if(Math.random() < 0.02) enemies.push({x: Math.random()*270, y: -100});
                 enemies.forEach((en, i) => {
-                    en.y += speed;
-                    ctx.fillStyle = "#ff0055"; ctx.fillRect(en.x, en.y, 50, 80); // سيارة العدو
-                    
-                    // تصادم
-                    if(en.y+80 > player.y && en.y < player.y+80 && en.x+50 > player.x && en.x < player.x+50) {
-                        lives--; enemies.splice(i, 1);
-                        if(lives <= 0) { alert("Game Over! Score: " + score); location.reload(); }
-                    }
-                    if(en.y > 480) { enemies.splice(i, 1); score += 10; speed += 0.1; }
+                    en.y += 6;
+                    ctx.fillStyle = "#fff"; ctx.fillRect(en.x, en.y, 45, 80);
+                    if(en.y > 330 && en.y < 430 && en.x > x-40 && en.x < x+40) { location.reload(); }
+                    if(en.y > 480) { enemies.splice(i,1); score += 50; }
                 });
-
                 document.getElementById("s").innerText = score;
-                document.getElementById("l").innerText = lives;
                 requestAnimationFrame(draw);
             }
-
-            // تحكم لمس بسيط ومضمون
-            canvas.addEventListener("touchstart", (e) => {
+            canvas.ontouchstart = (e) => {
                 let tx = e.touches[0].clientX - canvas.offsetLeft;
-                player.x = (tx < 160) ? Math.max(0, player.x-60) : Math.min(270, player.x+60);
-            });
-
+                x = (tx < 160) ? Math.max(0, x-60) : Math.min(270, x+60);
+            };
             draw();
         </script>
     </body>
     </html>
     """
-    components.html(game_html, height=580)
-    if st.button("❌ إنهاء اللعب"):
-        go('main')
+    components.html(game_html, height=550)
+    
+    if st.button("❌ خروج"):
+        navigate('home')
+    st.markdown('</div>', unsafe_allow_html=True)
     
