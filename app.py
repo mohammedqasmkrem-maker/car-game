@@ -1,132 +1,171 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Neon Traffic Racer", layout="centered")
+# إعداد الصفحة
+st.set_page_config(page_title="ASTRA REAL RACER", layout="wide", initial_sidebar_state="collapsed")
 
-# تصميم الواجهة الخارجية (Neon Style)
+# تصميم UI احترافي مع خلفية نجمية
 st.markdown("""
     <style>
-    .stApp { background-color: #050505; color: #fff; }
-    .hud-container {
-        display: flex; justify-content: space-between;
-        padding: 10px; border: 2px solid #bc13fe;
-        border-radius: 15px; box-shadow: 0 0 15px #bc13fe;
-        background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap');
+    
+    .stApp {
+        background: radial-gradient(circle at center, #1a1a2e 0%, #0a0a0a 100%);
+        color: #e0e0e0;
     }
-    .neon-text { color: #0ff; text-shadow: 0 0 10px #0ff; font-weight: bold; }
+    
+    .main-header {
+        font-family: 'Orbitron', sans-serif;
+        text-align: center;
+        background: linear-gradient(90deg, #00f2fe, #4facfe);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 50px;
+        letter-spacing: 5px;
+        margin-bottom: 0px;
+    }
+    
+    .glass-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+    }
+    
+    .control-btn {
+        background: rgba(0, 242, 254, 0.1);
+        border: 1px solid #00f2fe;
+        color: #00f2fe;
+        border-radius: 50%;
+        width: 70px; height: 70px;
+        font-size: 24px;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+    }
     </style>
-    <div class="hud-container">
-        <span class="neon-text">SPEED: <span id="ui-speed">0</span> KM/H</span>
-        <span style="color: #f0f;">SCORE: <span id="ui-score">0</span></span>
-        <span style="color: #ff0055;">LIFE: ❤️❤️❤️</span>
-    </div>
+    <h1 class="main-header">ASTRA</h1>
     """, unsafe_allow_html=True)
 
-# كود اللعبة المتقدم (JavaScript)
-game_js = """
+# الجزء الخاص باللعبة (محرك محسّن بصرياً)
+# **ملاحظة:** تحتاج إلى صور سيارات شفافة (PNG) ترفعها على الإنترنت
+# وتبدل الروابط هنا
+game_html = """
 <!DOCTYPE html>
 <html>
 <head>
     <style>
-        body { margin: 0; display: flex; flex-direction: column; align-items: center; background: #000; font-family: sans-serif; }
-        canvas { border: 3px solid #bc13fe; box-shadow: 0 0 20px #bc13fe; border-radius: 10px; touch-action: none; }
-        .controls { display: flex; gap: 40px; margin-top: 20px; }
-        .btn { 
-            width: 80px; height: 80px; border-radius: 50%; border: 2px solid #0ff;
-            background: rgba(0, 255, 255, 0.1); color: #0ff; font-size: 30px;
-            display: flex; align-items: center; justify-content: center;
-            user-select: none; backdrop-filter: blur(5px); transition: 0.1s;
+        body { margin: 0; display: flex; flex-direction: column; align-items: center; background: transparent; }
+        canvas { 
+            border-radius: 25px; 
+            box-shadow: 0 0 50px rgba(79, 172, 254, 0.2);
+            background: #0f172a;
         }
-        .btn:active { transform: scale(1.2); background: rgba(0, 255, 255, 0.4); }
+        .ui-overlay {
+            position: absolute; top: 20px; width: 300px;
+            display: flex; justify-content: space-between;
+            font-family: 'monospace'; color: #00f2fe; text-shadow: 0 0 5px #00f2fe;
+            z-index: 10;
+        }
     </style>
 </head>
 <body>
-    <canvas id="road" width="350" height="500"></canvas>
-    
-    <div class="controls">
-        <div class="btn" id="leftBtn">◀</div>
-        <div class="btn" id="nitroBtn" style="border-color:#f0f; color:#f0f;">🔥</div>
-        <div class="btn" id="rightBtn">▶</div>
+    <div class="ui-overlay">
+        <div id="score">SCORE: 000</div>
+        <div id="lives">❤️❤️❤️</div>
     </div>
-
+    <canvas id="gameCanvas" width="340" height="550"></canvas>
+    
     <script>
-        const canvas = document.getElementById("road");
+        const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
+        
+        let carPos = 150, score = 0, speed = 5, frame = 0, lives = 3;
+        let traffic = [];
 
-        // المتغيرات الأساسية
-        let carX = 150, speed = 0, score = 0, lives = 3;
-        let roadOffset = 0, gameActive = true, nitro = false;
-        let obstacles = [];
+        // تحميل صور السيارات (يجب أن تكون شفافة PNG)
+        // **هنا لازم تحط روابط لصور سياراتك**
+        const playerCarImg = new Image();
+        playerCarImg.src = "https://i.ibb.co/L5p0Gv0/player-car.png"; // رابط لسيارتك
+        
+        const enemyCarImg = new Image();
+        enemyCarImg.src = "https://i.ibb.co/3Wf4Gz7/enemy-car.png"; // رابط لسيارة العدو
 
-        // نظام العوائق (المرور)
-        function spawnObstacle() {
-            if (Math.random() < 0.03) {
-                obstacles.push({ x: Math.random() * 270 + 20, y: -100, speed: Math.random() * 3 + 2 });
-            }
-        }
-
-        function update() {
-            if (!gameActive) return;
-
-            // 1. نظام السرعة
-            if (speed < 120) speed += 0.2;
-            if (nitro) speed = 220;
-            
-            roadOffset += speed / 10;
-            score += Math.floor(speed / 50);
-
-            // 2. حركة العوائق وتصادمها
-            obstacles.forEach((obs, index) => {
-                obs.y += (speed/20) + obs.speed;
-                // تصادم
-                if (obs.y + 60 > 420 && obs.x < carX + 40 && obs.x + 40 > carX) {
-                    lives--;
-                    obstacles.splice(index, 1);
-                    if (lives <= 0) gameActive = false;
-                }
-                if (obs.y > 600) obstacles.splice(index, 1);
-            });
-
-            spawnObstacle();
-            draw();
-            requestAnimationFrame(update);
-        }
-
-        function draw() {
-            ctx.fillStyle = "#111"; // أرضية الطريق
-            ctx.fillRect(0, 0, 350, 500);
-
-            // رسم الطريق اللانهائي (خطوط النيون)
-            ctx.strokeStyle = "#bc13fe";
-            ctx.setLineDash([30, 30]);
-            ctx.lineDashOffset = -roadOffset;
-            ctx.lineWidth = 5;
-            ctx.beginPath(); ctx.moveTo(175, 0); ctx.lineTo(175, 500); ctx.stroke();
-
-            // رسم سيارة اللاعب (نيون أزرق)
-            ctx.shadowBlur = 15; ctx.shadowColor = "#0ff";
-            ctx.fillStyle = "#0ff";
-            ctx.fillRect(carX, 420, 40, 70);
-            
-            // رسم سيارات المرور (نيون بنفسجي)
-            ctx.shadowColor = "#f0f"; ctx.fillStyle = "#f0f";
-            obstacles.forEach(obs => ctx.fillRect(obs.x, obs.y, 40, 60));
+        function drawPlayer() {
+            ctx.shadowBlur = 15; ctx.shadowColor = "#00f2fe";
+            ctx.drawImage(playerCarImg, carPos, 450, 40, 70);
             ctx.shadowBlur = 0;
         }
 
-        // أزرار الموبايل واللمس
-        document.getElementById("leftBtn").ontouchstart = () => { if(carX > 20) carX -= 40; };
-        document.getElementById("rightBtn").ontouchstart = () => { if(carX < 290) carX += 40; };
-        document.getElementById("nitroBtn").ontouchstart = () => { nitro = true; setTimeout(()=>nitro=false, 2000); };
+        function gameLoop() {
+            if (!lives) { // إذا خلصت الأرواح
+                ctx.fillStyle = "white";
+                ctx.font = "30px Orbitron";
+                ctx.fillText("GAME OVER", canvas.width / 2 - 80, canvas.height / 2);
+                return;
+            }
 
-        update();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // رسم الطريق (خطوط بيضاء تتحرك)
+            ctx.setLineDash([40, 20]);
+            ctx.strokeStyle = "rgba(255,255,255,0.1)"; // لون خطوط الطريق
+            ctx.lineWidth = 4;
+            ctx.lineDashOffset = -frame * speed;
+            ctx.beginPath(); 
+            ctx.moveTo(100, 0); ctx.lineTo(100, 550); ctx.stroke(); // خط يسار
+            ctx.moveTo(240, 0); ctx.lineTo(240, 550); ctx.stroke(); // خط يمين
+            
+            drawPlayer();
+            
+            // توليد وحركة المرور
+            if(frame % 100 == 0) traffic.push({x: Math.random()*240 + 50, y: -100}); // نطاق توليد أوسع
+            traffic.forEach((car, i) => {
+                car.y += speed;
+                ctx.drawImage(enemyCarImg, car.x, car.y, 40, 70);
+                
+                // اصطدام
+                if(car.y > 400 && car.y < 520 && car.x > carPos - 35 && car.x < carPos + 35) {
+                   lives--;
+                   document.getElementById("lives").innerText = "❤️".repeat(lives);
+                   traffic.splice(i, 1); // حذف السيارة بعد الاصطدام
+                }
+                if(car.y > 550) traffic.splice(i, 1); // حذف السيارات اللي تطلع برا الشاشة
+            });
+
+            score++;
+            document.getElementById("score").innerText = "SCORE: " + score;
+            frame++;
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.addEventListener("keydown", e => {
+            if(e.key == "ArrowLeft" && carPos > 20) carPos -= 30;
+            if(e.key == "ArrowRight" && carPos < 280) carPos += 30;
+        });
+
+        gameLoop();
     </script>
 </body>
 </html>
 """
 
-components.html(game_js, height=700)
+# عرض اللعبة في كرت زجاجي
+with st.container():
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        components.html(game_html, height=600)
 
-st.sidebar.markdown("### 🛠 إعدادات المطور")
-color = st.sidebar.color_picker("اختر لون سيارتك", "#00ffff")
-st.sidebar.write("سيتم ربط اللون برمجياً في التحديث القادم!")
+# أزرار تحكم الموبايل (تصميم نيون دائري)
+st.markdown("""
+    <div style="display: flex; justify-content: center; gap: 50px; margin-top: -50px;">
+        <button class="control-btn" onclick="window.parent.postMessage('left', '*')">L</button>
+        <button class="control-btn" style="border-color: #ff0055; color: #ff0055;">🔥</button>
+        <button class="control-btn" onclick="window.parent.postMessage('right', '*')">R</button>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.write(" ")
+st.caption("<center>ASTRA ENGINE v1.0 - Premium Driving Experience</center>", unsafe_allow_html=True)
