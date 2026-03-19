@@ -3,80 +3,83 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Real Traffic Racer", layout="centered")
 
-# كود اللعبة باستخدام جافا سكريبت احترافي وصور واقعية
+# واجهة التطبيق
+st.markdown("<h1 style='text-align: center; color: white; font-family: sans-serif;'>🏎️ TRAFFIC RACER 🏎️</h1>", unsafe_allow_html=True)
+
+# كود اللعبة المطور
 game_code = """
 <!DOCTYPE html>
 <html>
 <head>
     <style>
-        body { margin: 0; overflow: hidden; background: #222; font-family: sans-serif; }
-        canvas { display: block; margin: 0 auto; border: 4px solid #555; border-radius: 15px; }
-        .stats { position: absolute; top: 10px; left: 20px; color: yellow; font-size: 20px; font-weight: bold; text-shadow: 2px 2px #000; }
+        body { margin: 0; display: flex; flex-direction: column; align-items: center; background: #000; overflow: hidden; }
+        canvas { border: 3px solid #555; border-radius: 15px; background: #333; touch-action: none; }
+        .info { color: yellow; font-family: Arial; font-size: 18px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
-    <div class="stats">SCORE: <span id="score">0</span> | LIVES: <span id="lives">❤️❤️❤️</span></div>
-    <canvas id="game" width="350" height="550"></canvas>
+    <div class="info">SCORE: <span id="s">0</span> | ❤️: <span id="l">3</span></div>
+    <canvas id="g" width="340" height="500"></canvas>
 
     <script>
-        const canvas = document.getElementById("game");
+        const canvas = document.getElementById("g");
         const ctx = canvas.getContext("2d");
 
-        // صور واقعية (سيارات وطريق)
-        const roadImg = new Image(); roadImg.src = "https://i.ibb.co/vY6YfTr/road-texture.jpg"; 
-        const playerImg = new Image(); playerImg.src = "https://i.ibb.co/mS79vS6/blue-pickup.png";
-        const enemyImg = new Image(); enemyImg.src = "https://i.ibb.co/fNdf8v8/white-car.png";
+        // صور واقعية جديدة (روابط مباشرة دائمة)
+        const roadImg = new Image(); roadImg.src = "https://raw.githubusercontent.com/Subrata-S/Car-Racing-Game-JavaScript/master/img/road.png";
+        const playerImg = new Image(); playerImg.src = "https://raw.githubusercontent.com/Subrata-S/Car-Racing-Game-JavaScript/master/img/car.png";
+        const enemyImg = new Image(); enemyImg.src = "https://raw.githubusercontent.com/Subrata-S/Car-Racing-Game-JavaScript/master/img/enemy.png";
 
-        let carX = 150, score = 0, roadY = 0, speed = 8, lives = 3, gameActive = true;
+        let carX = 145, score = 0, roadY = 0, speed = 8, lives = 3, gameActive = true;
         let traffic = [];
 
-        function draw() {
+        function update() {
             if (!gameActive) return;
 
-            // تحريك الطريق
-            roadY += speed; if (roadY >= 550) roadY = 0;
-            ctx.drawImage(roadImg, 0, roadY, 350, 550);
-            ctx.drawImage(roadImg, 0, roadY - 550, 350, 550);
+            // تحريك الطريق الأسفلتي
+            roadY += speed; if (roadY >= 500) roadY = 0;
+            ctx.drawImage(roadImg, 0, roadY, 340, 500);
+            ctx.drawImage(roadImg, 0, roadY - 500, 340, 500);
 
-            // رسم سيارتك (البيك آب)
-            ctx.drawImage(playerImg, carX, 430, 50, 90);
+            // رسم سيارتك (الرياضية)
+            ctx.drawImage(playerImg, carX, 400, 50, 90);
 
-            // توليد وحركة المرور
-            if (Math.random() < 0.02) traffic.push({x: Math.random() * 260 + 20, y: -100});
+            // توليد سيارات المرور بشكل عشوائي
+            if (Math.random() < 0.02) traffic.push({x: Math.random() * 250 + 20, y: -100});
             
             traffic.forEach((obs, i) => {
                 obs.y += speed - 2;
-                ctx.drawImage(enemyImg, obs.x, obs.y, 45, 85);
+                ctx.drawImage(enemyImg, obs.x, obs.y, 50, 90);
 
-                // كشف التصادم
-                if (obs.y + 70 > 430 && obs.y < 520 && obs.x < carX + 45 && obs.x + 45 > carX) {
+                // كشف التصادم الحقيقي
+                if (obs.y + 80 > 400 && obs.y < 490 && obs.x < carX + 45 && obs.x + 45 > carX) {
                     lives--; traffic.splice(i, 1);
                     if (lives <= 0) {
                         gameActive = false;
-                        alert("انتهت اللعبة! مجموع نقاطك: " + score);
+                        alert("GAVE OVER! Your Score: " + score);
                         location.reload();
                     }
                 }
-                if (obs.y > 600) { traffic.splice(i, 1); score += 10; }
+                if (obs.y > 550) { traffic.splice(i, 1); score += 10; }
             });
 
-            document.getElementById("score").innerText = score;
-            document.getElementById("lives").innerText = "❤️".repeat(lives);
-            requestAnimationFrame(draw);
+            document.getElementById("s").innerText = score;
+            document.getElementById("l").innerText = lives;
+            requestAnimationFrame(update);
         }
 
-        // تحكم الموبايل (لمس الشاشة)
+        // تحكم لمس احترافي للموبايل
         canvas.addEventListener("touchstart", (e) => {
             const touchX = e.touches[0].clientX - canvas.offsetLeft;
-            carX = (touchX < 175) ? Math.max(20, carX - 60) : Math.min(280, carX + 60);
+            carX = (touchX < 170) ? Math.max(20, carX - 60) : Math.min(270, carX + 60);
         });
 
-        draw();
+        draw = () => update();
+        playerImg.onload = draw;
     </script>
 </body>
 </html>
 """
 
-st.markdown("<h2 style='text-align: center; color: #99ff33;'>TRAFFIC RACER MOBILE</h2>", unsafe_allow_html=True)
 components.html(game_code, height=600)
-st.info("💡 تحكم من الموبايل: اضغط على يسار أو يمين الشاشة لتحريك السيارة.")
+st.button("إعادة تشغيل اللعبة 🔄")
