@@ -1,86 +1,102 @@
 import streamlit as st
-import pandas as pd
-import plotly.express as px
-from streamlit_option_menu import option_menu
+import streamlit.components.v1 as components
 
-# --- إعدادات الصفحة ---
-st.set_page_config(page_title="Car Hub Pro", page_icon="🏎️", layout="wide")
+st.set_page_config(page_title="Traffic Racer Pro", layout="centered")
 
-# --- تنسيق CSS مخصص لجعل الواجهة تبدو فخمة ---
+# تصميم الواجهة بالألوان اللي ردتها
 st.markdown("""
     <style>
-    .main { background-color: #0e1117; }
-    div.stButton > button:first-child {
-        background-color: #ff4b4b; color: white; border-radius: 10px; width: 100%;
-    }
-    .car-card {
-        background-color: #262730; padding: 20px; border-radius: 15px;
-        border: 1px solid #464646; margin-bottom: 10px;
-    }
+    .stApp { background-color: #1a1a1a; }
+    .title { color: #99ff33; text-align: center; font-size: 40px; font-weight: bold; font-family: 'Arial Black'; }
     </style>
+    <p class="title">TRAFFIC RACER JS</p>
     """, unsafe_allow_html=True)
 
-# --- بيانات وهمية (بيانات السيارات) ---
-data = {
-    'السيارة': ['Tesla Model 3', 'BMW M4', 'Mercedes G-Wagon', 'Toyota Supra', 'Audi RS7'],
-    'السعر ($)': [45000, 78000, 140000, 55000, 120000],
-    'النوع': ['كهربائية', 'بنزين', 'بنزين', 'بنزين', 'هجين'],
-    'التسارع (0-100)': [3.1, 3.8, 4.5, 3.9, 3.5]
-}
-df = pd.DataFrame(data)
+# كود اللعبة بلغة JavaScript و HTML
+game_code = """
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { margin: 0; overflow: hidden; background: #333; }
+        canvas { display: block; background: #555; margin: 0 auto; border: 5px solid #99ff33; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="300" height="500"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
 
-# --- القائمة الجانبية (Navigation) ---
-with st.sidebar:
-    selected = option_menu(
-        menu_title="Car Hub Pro",
-        options=["الرئيسية", "المعرض", "تحليل الأسعار", "المستشار الذكي"],
-        icons=["house", "car-front", "graph-up", "robot"],
-        menu_icon="cast", default_index=0,
-    )
+        let carX = 130;
+        let enemyY = -100;
+        let enemyX = 130;
+        let score = 0;
+        let gameOver = false;
 
-# --- الصفحة الرئيسية ---
-if selected == "الرئيسية":
-    st.title("🏎️ مرحباً بك في مستقبـل السيارات")
-    st.subheader("اكتشف، قارن، واشترِ سيارة أحلامك بضغطة زر.")
-    st.image("https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80")
+        function draw() {
+            if (gameOver) {
+                ctx.fillStyle = "white";
+                ctx.font = "30px Arial";
+                ctx.fillText("Game Over!", 70, 250);
+                ctx.fillText("Score: " + score, 90, 300);
+                return;
+            }
 
-# --- صفحة المعرض (Gallery with Filters) ---
-elif selected == "المعرض":
-    st.title("🖼️ معرض السيارات المميزة")
-    
-    col_f1, col_f2 = st.columns(2)
-    with col_f1:
-        type_filter = st.multiselect("نوع المحرك", df['النوع'].unique(), default=df['النوع'].unique())
-    with col_f2:
-        price_filter = st.slider("نطاق السعر ($)", 30000, 150000, (30000, 150000))
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    filtered_df = df[(df['النوع'].isin(type_filter)) & (df['السعر ($)'].between(price_filter[0], price_filter[1]))]
+            // الطريق
+            ctx.fillStyle = "gray";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = "white";
+            ctx.setLineDash([20, 20]);
+            ctx.moveTo(150, 0); ctx.lineTo(150, 500); ctx.stroke();
 
-    for index, row in filtered_df.iterrows():
-        with st.container():
-            st.markdown(f"""
-            <div class="car-card">
-                <h3>{row['السيارة']}</h3>
-                <p>السعر: <b>${row['السعر ($)']:,.0f}</b> | النوع: {row['النوع']} | التسارع: {row['التسارع (0-100)']} ثانية</p>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button(f"تفاصيل {row['السيارة']}", key=index):
-                st.toast(f"جاري تحميل مواصفات {row['السيارة']}...")
+            // سيارتك (الزرقاء)
+            ctx.fillStyle = "blue";
+            ctx.fillRect(carX, 400, 40, 70);
 
-# --- صفحة التحليل (Charts) ---
-elif selected == "تحليل الأسعار":
-    st.title("📊 مقارنة أداء وسعر السيارات")
-    fig = px.scatter(df, x="السعر ($)", y="التسارع (0-100)", size="السعر ($)", color="السيارة",
-                     hover_name="السيارة", log_x=True, size_max=60, template="plotly_dark")
-    st.plotly_chart(fig, use_container_width=True)
+            // سيارة العدو (الحمراء)
+            ctx.fillStyle = "red";
+            ctx.fillRect(enemyX, enemyY, 40, 70);
 
-# --- صفحة المستشار الذكي ---
-elif selected == "المستشار الذكي":
-    st.title("🤖 مساعد الشراء الذكي")
-    user_input = st.text_input("صف لي احتياجك (مثلاً: أريد سيارة سريعة وعائلية):")
-    if user_input:
-        st.success("بناءً على طلبك، نقترح عليك تفقد سيارة **Audi RS7** لأنها تجمع بين الفخامة والأداء العالي.")
+            enemyY += 5; // سرعة العدو
+            if (enemyY > 500) {
+                enemyY = -100;
+                enemyX = Math.random() > 0.5 ? 60 : 200;
+                score++;
+            }
 
-# --- Footer ---
+            // كشف الاصطدام
+            if (enemyY + 70 > 400 && enemyX < carX + 40 && enemyX + 40 > carX) {
+                gameOver = true;
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowLeft" && carX > 50) carX -= 70;
+            if (e.key === "ArrowRight" && carX < 210) carX += 70;
+        });
+
+        draw();
+    </script>
+</body>
+</html>
+"""
+
+# عرض اللعبة داخل التطبيق
+components.html(game_code, height=520)
+
+# أزرار التحكم (للموبايل)
+st.write("استخدم الأزرار للتحرك:")
+col1, col2 = st.columns(2)
+if col1.button("⬅️ يسار"):
+    st.warning("حالياً التحكم فقط بلوحة المفاتيح (الأسهم)، برمجياً نحتاج ربط الأزرار بالـ JS")
+if col2.button("يمين ➡️"):
+    pass
+
 st.markdown("---")
-st.caption("تم التطوير بواسطة ذكاء اصطناعي لخدمة عشاق السيارات 2026")
+st.button("🏆 قائمة المتصدرين")
+st.button("⚙️ الإعدادات")
