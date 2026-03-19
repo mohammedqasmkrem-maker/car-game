@@ -1,102 +1,132 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Traffic Racer Pro", layout="centered")
+st.set_page_config(page_title="Neon Traffic Racer", layout="centered")
 
-# تصميم الواجهة بالألوان اللي ردتها
+# تصميم الواجهة الخارجية (Neon Style)
 st.markdown("""
     <style>
-    .stApp { background-color: #1a1a1a; }
-    .title { color: #99ff33; text-align: center; font-size: 40px; font-weight: bold; font-family: 'Arial Black'; }
+    .stApp { background-color: #050505; color: #fff; }
+    .hud-container {
+        display: flex; justify-content: space-between;
+        padding: 10px; border: 2px solid #bc13fe;
+        border-radius: 15px; box-shadow: 0 0 15px #bc13fe;
+        background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+    }
+    .neon-text { color: #0ff; text-shadow: 0 0 10px #0ff; font-weight: bold; }
     </style>
-    <p class="title">TRAFFIC RACER JS</p>
+    <div class="hud-container">
+        <span class="neon-text">SPEED: <span id="ui-speed">0</span> KM/H</span>
+        <span style="color: #f0f;">SCORE: <span id="ui-score">0</span></span>
+        <span style="color: #ff0055;">LIFE: ❤️❤️❤️</span>
+    </div>
     """, unsafe_allow_html=True)
 
-# كود اللعبة بلغة JavaScript و HTML
-game_code = """
+# كود اللعبة المتقدم (JavaScript)
+game_js = """
 <!DOCTYPE html>
 <html>
 <head>
     <style>
-        body { margin: 0; overflow: hidden; background: #333; }
-        canvas { display: block; background: #555; margin: 0 auto; border: 5px solid #99ff33; }
+        body { margin: 0; display: flex; flex-direction: column; align-items: center; background: #000; font-family: sans-serif; }
+        canvas { border: 3px solid #bc13fe; box-shadow: 0 0 20px #bc13fe; border-radius: 10px; touch-action: none; }
+        .controls { display: flex; gap: 40px; margin-top: 20px; }
+        .btn { 
+            width: 80px; height: 80px; border-radius: 50%; border: 2px solid #0ff;
+            background: rgba(0, 255, 255, 0.1); color: #0ff; font-size: 30px;
+            display: flex; align-items: center; justify-content: center;
+            user-select: none; backdrop-filter: blur(5px); transition: 0.1s;
+        }
+        .btn:active { transform: scale(1.2); background: rgba(0, 255, 255, 0.4); }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="300" height="500"></canvas>
+    <canvas id="road" width="350" height="500"></canvas>
+    
+    <div class="controls">
+        <div class="btn" id="leftBtn">◀</div>
+        <div class="btn" id="nitroBtn" style="border-color:#f0f; color:#f0f;">🔥</div>
+        <div class="btn" id="rightBtn">▶</div>
+    </div>
+
     <script>
-        const canvas = document.getElementById("gameCanvas");
+        const canvas = document.getElementById("road");
         const ctx = canvas.getContext("2d");
 
-        let carX = 130;
-        let enemyY = -100;
-        let enemyX = 130;
-        let score = 0;
-        let gameOver = false;
+        // المتغيرات الأساسية
+        let carX = 150, speed = 0, score = 0, lives = 3;
+        let roadOffset = 0, gameActive = true, nitro = false;
+        let obstacles = [];
 
-        function draw() {
-            if (gameOver) {
-                ctx.fillStyle = "white";
-                ctx.font = "30px Arial";
-                ctx.fillText("Game Over!", 70, 250);
-                ctx.fillText("Score: " + score, 90, 300);
-                return;
+        // نظام العوائق (المرور)
+        function spawnObstacle() {
+            if (Math.random() < 0.03) {
+                obstacles.push({ x: Math.random() * 270 + 20, y: -100, speed: Math.random() * 3 + 2 });
             }
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // الطريق
-            ctx.fillStyle = "gray";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = "white";
-            ctx.setLineDash([20, 20]);
-            ctx.moveTo(150, 0); ctx.lineTo(150, 500); ctx.stroke();
-
-            // سيارتك (الزرقاء)
-            ctx.fillStyle = "blue";
-            ctx.fillRect(carX, 400, 40, 70);
-
-            // سيارة العدو (الحمراء)
-            ctx.fillStyle = "red";
-            ctx.fillRect(enemyX, enemyY, 40, 70);
-
-            enemyY += 5; // سرعة العدو
-            if (enemyY > 500) {
-                enemyY = -100;
-                enemyX = Math.random() > 0.5 ? 60 : 200;
-                score++;
-            }
-
-            // كشف الاصطدام
-            if (enemyY + 70 > 400 && enemyX < carX + 40 && enemyX + 40 > carX) {
-                gameOver = true;
-            }
-
-            requestAnimationFrame(draw);
         }
 
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "ArrowLeft" && carX > 50) carX -= 70;
-            if (e.key === "ArrowRight" && carX < 210) carX += 70;
-        });
+        function update() {
+            if (!gameActive) return;
 
-        draw();
+            // 1. نظام السرعة
+            if (speed < 120) speed += 0.2;
+            if (nitro) speed = 220;
+            
+            roadOffset += speed / 10;
+            score += Math.floor(speed / 50);
+
+            // 2. حركة العوائق وتصادمها
+            obstacles.forEach((obs, index) => {
+                obs.y += (speed/20) + obs.speed;
+                // تصادم
+                if (obs.y + 60 > 420 && obs.x < carX + 40 && obs.x + 40 > carX) {
+                    lives--;
+                    obstacles.splice(index, 1);
+                    if (lives <= 0) gameActive = false;
+                }
+                if (obs.y > 600) obstacles.splice(index, 1);
+            });
+
+            spawnObstacle();
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function draw() {
+            ctx.fillStyle = "#111"; // أرضية الطريق
+            ctx.fillRect(0, 0, 350, 500);
+
+            // رسم الطريق اللانهائي (خطوط النيون)
+            ctx.strokeStyle = "#bc13fe";
+            ctx.setLineDash([30, 30]);
+            ctx.lineDashOffset = -roadOffset;
+            ctx.lineWidth = 5;
+            ctx.beginPath(); ctx.moveTo(175, 0); ctx.lineTo(175, 500); ctx.stroke();
+
+            // رسم سيارة اللاعب (نيون أزرق)
+            ctx.shadowBlur = 15; ctx.shadowColor = "#0ff";
+            ctx.fillStyle = "#0ff";
+            ctx.fillRect(carX, 420, 40, 70);
+            
+            // رسم سيارات المرور (نيون بنفسجي)
+            ctx.shadowColor = "#f0f"; ctx.fillStyle = "#f0f";
+            obstacles.forEach(obs => ctx.fillRect(obs.x, obs.y, 40, 60));
+            ctx.shadowBlur = 0;
+        }
+
+        // أزرار الموبايل واللمس
+        document.getElementById("leftBtn").ontouchstart = () => { if(carX > 20) carX -= 40; };
+        document.getElementById("rightBtn").ontouchstart = () => { if(carX < 290) carX += 40; };
+        document.getElementById("nitroBtn").ontouchstart = () => { nitro = true; setTimeout(()=>nitro=false, 2000); };
+
+        update();
     </script>
 </body>
 </html>
 """
 
-# عرض اللعبة داخل التطبيق
-components.html(game_code, height=520)
+components.html(game_js, height=700)
 
-# أزرار التحكم (للموبايل)
-st.write("استخدم الأزرار للتحرك:")
-col1, col2 = st.columns(2)
-if col1.button("⬅️ يسار"):
-    st.warning("حالياً التحكم فقط بلوحة المفاتيح (الأسهم)، برمجياً نحتاج ربط الأزرار بالـ JS")
-if col2.button("يمين ➡️"):
-    pass
-
-st.markdown("---")
-st.button("🏆 قائمة المتصدرين")
-st.button("⚙️ الإعدادات")
+st.sidebar.markdown("### 🛠 إعدادات المطور")
+color = st.sidebar.color_picker("اختر لون سيارتك", "#00ffff")
+st.sidebar.write("سيتم ربط اللون برمجياً في التحديث القادم!")
