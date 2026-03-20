@@ -1,153 +1,192 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 1. الإعدادات الأساسية
-st.set_page_config(page_title="Royal Neon Max", layout="wide", initial_sidebar_state="collapsed")
+# 1. الإعدادات الفنية (الأساس)
+st.set_page_config(page_title="Royal Racer PRO", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. نظام الذاكرة المستمر
-if 'money' not in st.session_state: st.session_state.money = 25577
+# 2. نظام الحالة (المحفظة، النقاط، السيارة)
+if 'money' not in st.session_state: st.session_state.money = 25577 # القيمة الظاهرة في صورتك
 if 'score' not in st.session_state: st.session_state.score = 0
 if 'page' not in st.session_state: st.session_state.page = 'home'
-if 'my_cars' not in st.session_state: st.session_state.my_cars = ['Neon']
-if 'active_car' not in st.session_state: st.session_state.active_car = 'Neon'
+if 'active_car' not in st.session_state: st.session_state.active_car = 'BMW-Blue'
 
-# بيانات السيارات (السعر، اللون، السرعة)
-CARS_DB = {
-    'Neon': {'price': 0, 'color': '#00fbff', 'speed': 8, 'img': '🏎️'},
-    'BMW-M': {'price': 5000, 'color': '#ff0055', 'speed': 11, 'img': '🚙'},
-    'GT-Turbo': {'price': 15000, 'color': '#00ff44', 'speed': 14, 'img': '🏎️'},
-    'Royal-G': {'price': 50000, 'color': '#ffd700', 'speed': 18, 'img': '👑'}
+# قاعدة بيانات السيارات الاحترافية
+CARS = {
+    'BMW-Blue': {'color': '#0066ff', 'speed': 9, 'price': 0, 'desc': 'Standard Sport'},
+    'Neon-Green': {'color': '#39ff14', 'speed': 12, 'price': 5000, 'desc': 'Hyper Fast'},
+    'Gold-Edition': {'color': '#ffd700', 'speed': 15, 'price': 15000, 'desc': 'Royal Status'}
 }
 
-active_color = CARS_DB[st.session_state.active_car]['color']
-
-# 3. واجهة المستخدم (التصميم النيوني الفخم)
+# 3. محرك التصميم (CSS Modern UI)
 st.markdown(f"""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap');
-    .stApp {{ background: #020202; color: white; font-family: 'Orbitron', sans-serif; }}
-    .neon-border {{
-        border: 2px solid {active_color};
-        box-shadow: 0 0 20px {active_color}55, inset 0 0 10px {active_color}22;
-        border-radius: 25px; padding: 25px; background: rgba(0,0,0,0.85); text-align: center;
+    @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Inter:wght@400;700&display=swap');
+    
+    .stApp {{
+        background: radial-gradient(circle at top, #1a1a1a, #050505);
+        color: white;
+        font-family: 'Inter', sans-serif;
     }}
-    .btn-main button {{
-        background: transparent !important; color: {active_color} !important;
-        border: 2px solid {active_color} !important; border-radius: 15px !important;
-        height: 55px; font-weight: 900; transition: 0.4s;
+    
+    /* كارت التصميم */
+    .glass-panel {{
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        padding: 40px;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        text-align: center;
     }}
-    .btn-main button:hover {{ background: {active_color} !important; color: black !important; box-shadow: 0 0 30px {active_color}; }}
+    
+    /* الأزرار */
+    .stButton>button {{
+        background: linear-gradient(135deg, {CARS[st.session_state.active_car]['color']}, #000);
+        color: white !important;
+        border: none !important;
+        border-radius: 15px !important;
+        height: 60px;
+        font-weight: bold;
+        transition: 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }}
+    .stButton>button:hover {{
+        transform: scale(1.03);
+        box-shadow: 0 0 30px {CARS[st.session_state.active_car]['color']}88;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
-# --- [ الصفحة الرئيسية ] ---
+# --- [ الواجهة 1: الشاشة الرئيسية ] ---
 if st.session_state.page == 'home':
-    st.markdown(f'<div class="neon-border">', unsafe_allow_html=True)
-    st.markdown(f"<h1 style='color:{active_color}; text-shadow: 0 0 20px {active_color}; font-size:45px;'>ROYAL RACER MAX</h1>", unsafe_allow_html=True)
-    st.write(f"### 💰 المحفظة: ${st.session_state.money} | 🏆 أفضل سكور: {st.session_state.score}")
+    st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
+    st.markdown(f"<h1 style='font-family:Syncopate; font-size:50px; margin-bottom:0;'>ROYAL RACER</h1>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:gray;'>PREMIUM RACING EXPERIENCE</p>", unsafe_allow_html=True)
     
-    c1, c2, c3 = st.columns(3)
-    with c1: 
-        if st.button("🏁 انطلاق", key="start", use_container_width=True): st.session_state.page='play'; st.rerun()
-    with c2:
-        if st.button("🏢 المعرض", key="shop", use_container_width=True): st.session_state.page='store'; st.rerun()
-    with c3:
-        if st.button("⚙️ الكراج", key="garage", use_container_width=True): st.session_state.page='garage'; st.rerun()
+    # عرض العدادات
+    c1, c2 = st.columns(2)
+    c1.metric("BANK BALANCE", f"${st.session_state.money:,.0f}")
+    c2.metric("HIGHEST SCORE", st.session_state.score)
+    
+    st.divider()
+    
+    col_play, col_garage = st.columns(2)
+    with col_play:
+        if st.button("🏁 START RACE", use_container_width=True):
+            st.session_state.page = 'play'
+            st.rerun()
+    with col_garage:
+        if st.button("🚗 SHOWROOM", use_container_width=True):
+            st.session_state.page = 'garage'
+            st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- [ متجر السيارات ] ---
-elif st.session_state.page == 'store':
-    st.markdown('<div class="neon-border">', unsafe_allow_html=True)
-    st.header("🏢 معرض السيارات الفاخرة")
-    cols = st.columns(4)
-    for i, (name, d) in enumerate(CARS_DB.items()):
-        with cols[i]:
-            st.markdown(f"<div style='font-size:40px;'>{d['img']}</div><b style='color:{d['color']}'>{name}</b>", unsafe_allow_html=True)
-            if name in st.session_state.my_cars:
-                if st.button(f"اختيار", key=name): st.session_state.active_car=name; st.rerun()
-            else:
-                if st.button(f"شراء ${d['price']}", key=name):
-                    if st.session_state.money >= d['price']:
-                        st.session_state.money -= d['price']
-                        st.session_state.my_cars.append(name)
-                        st.rerun()
-                    else: st.error("الفلوس ما تكفي!")
-    if st.button("🔙 رجوع"): st.session_state.page='home'; st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# --- [ الكراج الدوار ] ---
+# --- [ الواجهة 2: الكراج الاحترافي ] ---
 elif st.session_state.page == 'garage':
-    st.markdown('<div class="neon-border">', unsafe_allow_html=True)
-    st.header("⚙️ تخصيص المركبة")
-    garage_ui = f"""
-    <div style="height:250px; display:flex; justify-content:center; align-items:center;">
-        <div id="car" style="width:150px; height:80px; background:{active_color}; border-radius:15px; box-shadow:0 0 50px {active_color}; animation:spin 4s linear infinite;"></div>
-    </div>
-    <style> @keyframes spin {{ from {{transform:rotateY(0deg);}} to {{transform:rotateY(360deg);}} }} </style>
-    """
-    components.html(garage_ui, height=260)
-    st.write(f"السيارة الحالية: **{st.session_state.active_car}**")
-    if st.button("🔙 حفظ وخروج"): st.session_state.page='home'; st.rerun()
+    st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
+    st.title("LUXURY SHOWROOM")
+    
+    cols = st.columns(3)
+    for i, (name, data) in enumerate(CARS.items()):
+        with cols[i]:
+            st.markdown(f"""
+                <div style="border: 1px solid {data['color']}; border-radius:15px; padding:15px;">
+                    <div style="font-size:40px;">🏎️</div>
+                    <h3 style="color:{data['color']}">{name}</h3>
+                    <p>{data['desc']}</p>
+                </div>
+            """, unsafe_allow_html=True)
+            if st.button(f"SELECT {name}", key=name):
+                st.session_state.active_car = name
+                st.rerun()
+                
+    if st.button("🔙 RETURN HOME"):
+        st.session_state.page = 'home'
+        st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- [ اللعبة الاحترافية ] ---
+# --- [ الواجهة 3: محرك السباق (Extreme Engine) ] ---
 elif st.session_state.page == 'play':
-    car_v = CARS_DB[st.session_state.active_car]
-    game_logic = f"""
-    <div style="display:flex; justify-content:space-between; color:{active_color}; font-family:sans-serif; font-weight:900; padding:10px;">
-        <span>CASH: $<span id="m">0</span></span>
-        <span>SCORE: <span id="s">0</span></span>
-    </div>
-    <canvas id="g" width="340" height="500" style="border:3px solid {active_color}; border-radius:20px; background:#000; box-shadow:0 0 30px {active_color}44; touch-action:none;"></canvas>
+    car_config = CARS[st.session_state.active_car]
     
-    <audio id="cSound" src="https://www.soundjay.com/misc/sounds/coin-spade-7.mp3"></audio>
-
+    game_html = f"""
+    <div style="display:flex; justify-content:space-around; font-weight:bold; color:{car_config['color']}; font-size:20px; margin-bottom:10px;">
+        <span>SCORE: <span id="scr">0</span></span>
+        <span>CASH: $<span id="mny">0</span></span>
+    </div>
+    <canvas id="raceCanvas" width="350" height="550" style="border:5px solid {car_config['color']}; border-radius:25px; background:#0a0a0a; display:block; margin:auto; touch-action:none;"></canvas>
+    
     <script>
-        const canvas=document.getElementById("g"), ctx=canvas.getContext("2d");
-        const snd=document.getElementById("cSound");
-        let px=145, py=400, score=0, cash=0, items=[], speed={car_v['speed']}, active=true;
+        const canvas = document.getElementById("raceCanvas");
+        const ctx = canvas.getContext("2d");
+        let px=150, py=450, score=0, cash=0, entities=[], speed={car_config['speed']}, frame=0;
 
-        function draw() {{
-            if(!active) return;
-            ctx.fillStyle="#050505"; ctx.fillRect(0,0,340,500);
-            
-            // رسم الشارع
-            ctx.strokeStyle="#222"; ctx.setLineDash([20,20]); ctx.beginPath(); ctx.moveTo(170,0); ctx.lineTo(170,500); ctx.stroke();
-
-            // سيارة اللاعب
-            ctx.shadowBlur=20; ctx.shadowColor="{active_color}"; ctx.fillStyle="{active_color}";
-            ctx.beginPath(); ctx.roundRect(px, py, 45, 80, 10); ctx.fill();
-
-            if(Math.random()<0.02) items.push({{t:'e', x:Math.random()*260+20, y:-100}});
-            if(Math.random()<0.01) items.push({{t:'c', x:Math.random()*260+20, y:-100}});
-
-            items.forEach((it, i)=>{{
-                it.y += speed;
-                if(it.t=='e') {{
-                    ctx.shadowBlur=0; ctx.fillStyle="#444";
-                    ctx.beginPath(); ctx.roundRect(it.x, it.y, 45, 80, 5); ctx.fill();
-                    if(it.y+70>py && it.y<py+70 && it.x+40>px && it.x<px+40) {{ active=false; alert("Game Over!"); location.reload(); }}
-                }} else {{
-                    ctx.shadowBlur=15; ctx.shadowColor="gold"; ctx.fillStyle="gold";
-                    ctx.beginPath(); ctx.arc(it.x+20, it.y+20, 15, 0, 7); ctx.fill();
-                    if(it.y+30>py && it.y<py+80 && it.x+30>px && it.x<px+40) {{ items.splice(i,1); cash+=100; snd.play(); }}
-                }}
-                if(it.y>550) {{ items.splice(i,1); if(it.t=='e') score+=10; }}
-            }});
-
-            document.getElementById("s").innerText = score;
-            document.getElementById("m").innerText = cash;
-            requestAnimationFrame(draw);
+        function drawPlayer() {{
+            ctx.shadowBlur = 20; ctx.shadowColor = "{car_config['color']}";
+            ctx.fillStyle = "{car_config['color']}";
+            ctx.beginPath(); ctx.roundRect(px, py, 50, 90, 15); ctx.fill();
+            ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(px+5, py+20, 40, 25);
         }}
 
-        canvas.addEventListener("touchmove", (e)=>{{
-            let rect = canvas.getBoundingClientRect();
-            px = Math.max(20, Math.min(275, e.touches[0].clientX - rect.left - 22));
-            e.preventDefault();
-        }}, {{passive:false}});
+        function update() {{
+            ctx.clearRect(0,0,350,550);
+            
+            // رسم الشارع المضيء
+            ctx.strokeStyle = "#222"; ctx.setLineDash([30, 20]);
+            ctx.beginPath(); ctx.moveTo(175, 0); ctx.lineTo(175, 550); ctx.stroke();
 
-        draw();
+            drawPlayer();
+
+            if(frame % 60 == 0) {{
+                let type = Math.random() > 0.3 ? 'enemy' : 'coin';
+                entities.push({{t: type, x: Math.random()*280+10, y: -100}});
+            }}
+
+            entities.forEach((ent, i) => {{
+                ent.y += speed;
+                if(ent.t == 'enemy') {{
+                    ctx.shadowBlur = 0; ctx.fillStyle = "#ff4444";
+                    ctx.beginPath(); ctx.roundRect(ent.x, ent.y, 50, 85, 10); ctx.fill();
+                    // تصادم
+                    if(ent.y+80 > py && ent.y < py+80 && ent.x+45 > px && ent.x < px+45) {{
+                        alert("WASTED! FINAL SCORE: " + score);
+                        location.reload();
+                    }}
+                }} else {{
+                    ctx.shadowBlur = 15; ctx.shadowColor = "gold"; ctx.fillStyle = "gold";
+                    ctx.beginPath(); ctx.arc(ent.x+20, ent.y+20, 15, 0, Math.PI*2); ctx.fill();
+                    // جمع عملة
+                    if(ent.y+30 > py && ent.y < py+80 && ent.x+30 > px && ent.x < px+40) {{
+                        entities.splice(i, 1); cash += 100;
+                    }}
+                }}
+
+                if(ent.y > 600) {{
+                    entities.splice(i, 1);
+                    if(ent.t == 'enemy') score += 10;
+                }}
+            }});
+
+            document.getElementById("scr").innerText = score;
+            document.getElementById("mny").innerText = cash;
+            frame++;
+            requestAnimationFrame(update);
+        }}
+
+        canvas.addEventListener("touchmove", (e) => {{
+            let rect = canvas.getBoundingClientRect();
+            let touchX = e.touches[0].clientX - rect.left;
+            px = Math.max(10, Math.min(290, touchX - 25));
+            e.preventDefault();
+        }}, {{passive: false}});
+
+        update();
     </script>
     """
-    components.html(game_logic, height=650)
-    if st.button("🔙 إنهاء"): st.session_state.page='home'; st.rerun()
+    components.html(game_html, height=650)
+    
+    if st.button("❌ TERMINATE MISSION"):
+        st.session_state.page = 'home'
+        st.rerun()
+    
