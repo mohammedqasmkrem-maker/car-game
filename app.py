@@ -1,154 +1,153 @@
 import streamlit as st
 import streamlit.components.v1 as components
-import random
 
-# 1. الإعدادات الأساسية لمنع الـ Syntax Error
-st.set_page_config(page_title="BMW Royal Empire", layout="wide", initial_sidebar_state="collapsed")
+# 1. إعدادات النظام والذاكرة
+st.set_page_config(page_title="Space Racer Pro", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. تهيئة نظام البيانات (المحفظة، الكراج، الإنجازات)
-if 'money' not in st.session_state: st.session_state.money = 25577 # القيمة من صورتك
-if 'score' not in st.session_state: st.session_state.score = 0
-if 'page' not in st.session_state: st.session_state.page = 'main_menu'
-if 'car_color' not in st.session_state: st.session_state.car_color = '#3498db'
-if 'unlocked_cars' not in st.session_state: st.session_state.unlocked_cars = ['Basic']
-if 'selected_car' not in st.session_state: st.session_state.selected_car = 'Basic'
+if 'money' not in st.session_state: st.session_state.money = 25577
+if 'lang' not in st.session_state: st.session_state.lang = 'ar'
+if 'control' not in st.session_state: st.session_state.control = 'touch' # touch, wheel, tilt
+if 'page' not in st.session_state: st.session_state.page = 'home'
+if 'active_car_color' not in st.session_state: st.session_state.active_car_color = '#00f2ff'
 
-# قاعدة بيانات الغرف والسيارات
-ROOMS = {
-    'City': {'bg': '#111', 'speed': 7, 'hazard': '🚧'},
-    'Desert': {'bg': '#2c1e14', 'speed': 10, 'hazard': '🌵'},
-    'Cyber': {'bg': '#000511', 'speed': 14, 'hazard': '⚡'}
+# نصوص اللغتين
+TEXTS = {
+    'ar': {'start': 'ابدأ السباق', 'shop': 'المتجر', 'settings': 'الإعدادات', 'garage': 'الكراج', 'lang_btn': 'English', 'control': 'نوع التحكم', 'back': 'رجوع'},
+    'en': {'start': 'START RACE', 'shop': 'SHOP', 'settings': 'SETTINGS', 'garage': 'GARAGE', 'lang_btn': 'العربية', 'control': 'Control Type', 'back': 'BACK'}
 }
+T = TEXTS[st.session_state.lang]
 
-# 3. محرك التصميم (CSS Modern UI)
+# 2. تصميم الواجهة (خلفية فضاء نيون)
 st.markdown(f"""
 <style>
-    .stApp {{ background: #000; color: white; font-family: 'Courier New', Courier, monospace; }}
-    .royal-card {{
-        background: linear-gradient(145deg, #111, #000);
-        border: 2px solid {st.session_state.car_color};
-        box-shadow: 0 0 20px {st.session_state.car_color}55;
-        border-radius: 20px; padding: 25px; text-align: center; margin-bottom: 20px;
+    .stApp {{
+        background: url("https://wallpaperaccess.com/full/416568.jpg");
+        background-size: cover;
+        color: white;
+    }}
+    .glass-morphism {{
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        border: 2px solid {st.session_state.active_car_color};
+        border-radius: 20px; padding: 25px; text-align: center;
     }}
     .stButton>button {{
-        background: transparent !important; color: {st.session_state.car_color} !important;
-        border: 2px solid {st.session_state.car_color} !important;
-        border-radius: 12px !important; font-weight: bold; height: 50px; transition: 0.3s;
+        background: rgba(255,255,255,0.1) !important;
+        color: white !important;
+        border: 1px solid {st.session_state.active_car_color} !important;
+        border-radius: 10px; font-weight: bold;
     }}
-    .stButton>button:hover {{ background: {st.session_state.car_color} !important; color: black !important; }}
 </style>
 """, unsafe_allow_html=True)
 
-# --- [ الغرفة 1: القائمة الرئيسية ] ---
-if st.session_state.page == 'main_menu':
-    st.markdown('<div class="royal-card">', unsafe_allow_html=True)
-    st.title("🔱 BMW ROYAL EMPIRE 🔱")
-    st.subheader(f"💰 BANK: ${st.session_state.money:,} | 🏆 BEST: {st.session_state.score}")
+# --- [ الصفحة الرئيسية ] ---
+if st.session_state.page == 'home':
+    st.markdown('<div class="glass-morphism">', unsafe_allow_html=True)
+    st.title("🌌 SPACE NEON RACER")
+    st.write(f"💰 ${st.session_state.money} | ⚙️ {st.session_state.control.upper()}")
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
-        if st.button("🏁 RACE (الغرف)"): st.session_state.page = 'room_select'; st.rerun()
+        if st.button(T['start']): st.session_state.page = 'play'; st.rerun()
+        if st.button(T['garage']): st.session_state.page = 'garage'; st.rerun()
     with col2:
-        if st.button("⚙️ GARAGE (الكراج)"): st.session_state.page = 'garage'; st.rerun()
-    with col3:
-        if st.button("🛒 SHOP (المتجر)"): st.session_state.page = 'shop'; st.rerun()
+        if st.button(T['shop']): st.session_state.page = 'shop'; st.rerun()
+        if st.button(T['settings']): st.session_state.page = 'settings'; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- [ الغرفة 2: اختيار ساحة المعركة (3 غرف) ] ---
-elif st.session_state.page == 'room_select':
-    st.markdown('<div class="royal-card">', unsafe_allow_html=True)
-    st.header("🗺️ SELECT YOUR ARENA")
-    cols = st.columns(3)
-    for i, (name, info) in enumerate(ROOMS.items()):
-        with cols[i]:
-            st.markdown(f"### {name}")
-            st.write(f"Speed: {info['speed']}x")
-            if st.button(f"ENTER {name}", key=name):
-                st.session_state.current_room = name
-                st.session_state.page = 'play'
-                st.rerun()
-    if st.button("🔙 BACK"): st.session_state.page = 'main_menu'; st.rerun()
+# --- [ صفحة الإعدادات (لغة + تحكم) ] ---
+elif st.session_state.page == 'settings':
+    st.markdown('<div class="glass-morphism">', unsafe_allow_html=True)
+    st.header(T['settings'])
+    
+    # تغيير اللغة
+    if st.button(T['lang_btn']):
+        st.session_state.lang = 'en' if st.session_state.lang == 'ar' else 'ar'
+        st.rerun()
+    
+    # اختيار التحكم
+    st.write(f"### {T['control']}")
+    c1, c2, c3 = st.columns(3)
+    if c1.button("📱 Touch"): st.session_state.control = 'touch'; st.rerun()
+    if c2.button("🎡 Wheel"): st.session_state.control = 'wheel'; st.rerun()
+    if c3.button("📳 Tilt"): st.session_state.control = 'tilt'; st.rerun()
+    
+    if st.button(T['back']): st.session_state.page = 'home'; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- [ الغرفة 3: الكراج الاحترافي (تعديل سيارات) ] ---
+# --- [ المتجر ] ---
+elif st.session_state.page == 'shop':
+    st.markdown('<div class="glass-morphism">', unsafe_allow_html=True)
+    st.header(T['shop'])
+    st.write("🚚 سيارات جديدة قادمة قريباً في تحديث المجرة!")
+    if st.button(T['back']): st.session_state.page = 'home'; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# --- [ الكراج ] ---
 elif st.session_state.page == 'garage':
-    st.markdown('<div class="royal-card">', unsafe_allow_html=True)
-    st.header("⚙️ CUSTOM GARAGE")
-    # عرض السيارة الدوارة
-    visual = f"""
-    <div style="height:150px; display:flex; justify-content:center; align-items:center;">
-        <div style="width:120px; height:60px; background:{st.session_state.car_color}; border-radius:10px; 
-        box-shadow:0 0 30px {st.session_state.car_color}; animation: spin 4s linear infinite;"></div>
-    </div>
-    <style> @keyframes spin {{ from{{transform:rotateY(0deg);}} to{{transform:rotateY(360deg);}} }} </style>
-    """
-    components.html(visual, height=160)
-    st.session_state.car_color = st.color_picker("REPAINT CAR", st.session_state.car_color)
-    st.write("---")
-    if st.button("✅ SAVE & EXIT"): st.session_state.page = 'main_menu'; st.rerun()
+    st.markdown('<div class="glass-morphism">', unsafe_allow_html=True)
+    st.header(T['garage'])
+    st.session_state.active_car_color = st.color_picker("Change Neon Color", st.session_state.active_car_color)
+    if st.button(T['back']): st.session_state.page = 'home'; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- [ الغرفة 4: ساحة اللعب المتقدمة ] ---
+# --- [ محرك اللعب المتقدم ] ---
 elif st.session_state.page == 'play':
-    room = ROOMS[st.session_state.current_room]
     game_js = f"""
-    <div style="display:flex; justify-content:space-between; color:{st.session_state.car_color}; font-weight:bold; font-size:20px; padding:10px;">
-        <span>PTS: <span id="s">0</span></span>
-        <span>ROOM: {st.session_state.current_room}</span>
-        <span>CASH: $<span id="m">0</span></span>
+    <div style="display:flex; justify-content:space-between; color:white; font-family:sans-serif; padding:10px;">
+        <span>CASH: ${st.session_state.money}</span>
+        <span id="score">SCORE: 0</span>
     </div>
-    <canvas id="race" width="340" height="500" style="border:3px solid {st.session_state.car_color}; border-radius:20px; background:{room['bg']}; display:block; margin:auto; touch-action:none;"></canvas>
+    <canvas id="game" width="340" height="500" style="border:3px solid {st.session_state.active_car_color}; border-radius:20px; background: url('https://i.imgur.com/8K5MhVn.png');"></canvas>
     
     <script>
-        const c=document.getElementById("race"), ctx=c.getContext("2d");
-        let px=145, py=400, score=0, cash=0, items=[], offset=0, active=true;
+        const canvas = document.getElementById("game"), ctx = canvas.getContext("2d");
+        let px=145, py=400, score=0, items=[], active=true;
+        const controlType = "{st.session_state.control}";
 
         function draw() {{
             if(!active) return;
             ctx.clearRect(0,0,340,500);
-            
-            // رسم الطريق المتحرك
-            ctx.strokeStyle="#333"; ctx.setLineDash([20, 20]); ctx.lineDashOffset = -offset;
-            ctx.beginPath(); ctx.moveTo(170,0); ctx.lineTo(170,500); ctx.stroke();
-            offset += {room['speed']};
 
-            // سيارة اللاعب (BMW Style)
-            ctx.shadowBlur=20; ctx.shadowColor="{st.session_state.car_color}"; ctx.fillStyle="{st.session_state.car_color}";
-            ctx.beginPath(); ctx.roundRect(px, py, 45, 80, 10); ctx.fill();
-            ctx.fillStyle="rgba(0,0,0,0.4)"; ctx.fillRect(px+5, py+15, 35, 20); // الزجاج
+            // اللاعب
+            ctx.shadowBlur=20; ctx.shadowColor="{st.session_state.active_car_color}";
+            ctx.fillStyle="{st.session_state.active_car_color}";
+            ctx.beginPath(); ctx.roundRect(px, py, 45, 85, 12); ctx.fill();
 
-            if(Math.random()<0.02) items.push({{t:'e', x:Math.random()*260+20, y:-100}});
-            if(Math.random()<0.01) items.push({{t:'c', x:Math.random()*260+20, y:-100}});
+            // الأعداء (كأنها نيازك)
+            if(Math.random()<0.02) items.push({{x: Math.random()*280+10, y: -100}});
 
             items.forEach((it, i)=>{{
-                it.y += {room['speed']};
-                if(it.t=='e') {{
-                    ctx.shadowBlur=0; ctx.fillStyle="#ff4444";
-                    ctx.beginPath(); ctx.roundRect(it.x, it.y, 45, 80, 5); ctx.fill();
-                    if(it.y+70>py && it.y<py+70 && it.x+40>px && it.x<px+40) {{
-                        active=false; alert("💥 WASTED!"); location.reload();
-                    }}
-                }} else {{
-                    ctx.shadowBlur=15; ctx.shadowColor="gold"; ctx.fillStyle="gold";
-                    ctx.beginPath(); ctx.arc(it.x+15, it.y+15, 12, 0, 7); ctx.fill();
-                    if(it.y+30>py && it.y<py+80 && it.x+30>px && it.x<px+40) {{
-                        items.splice(i,1); cash+=100;
-                    }}
+                it.y += 8;
+                ctx.shadowBlur=0; ctx.fillStyle="#ff4400";
+                ctx.beginPath(); ctx.arc(it.x+22, it.y+40, 20, 0, 7); ctx.fill();
+
+                if(it.y+60>py && it.y<py+70 && it.x+40>px && it.x<px+40) {{
+                    active=false; alert("Game Over!"); location.reload();
                 }}
-                if(it.y>550) {{ items.splice(i,1); if(it.t=='e') score+=10; }}
+                if(it.y>550) {{ items.splice(i,1); score+=10; }}
             }});
-            document.getElementById("s").innerText = score;
-            document.getElementById("m").innerText = cash;
+            document.getElementById("score").innerText = "SCORE: " + score;
             requestAnimationFrame(draw);
         }}
 
-        c.ontouchmove = (e) => {{
-            let r = c.getBoundingClientRect();
-            px = Math.max(20, Math.min(275, e.touches[0].clientX - r.left - 22));
-            e.preventDefault();
-        }};
+        // نظام التحكم حسب الإعدادات
+        if(controlType === 'touch' || controlType === 'wheel') {{
+            canvas.addEventListener("touchmove", (e) => {{
+                let rect = canvas.getBoundingClientRect();
+                px = Math.max(10, Math.min(285, e.touches[0].clientX - rect.left - 22));
+                e.preventDefault();
+            }}, {{passive:false}});
+        }} else if(controlType === 'tilt') {{
+            window.addEventListener('deviceorientation', (e) => {{
+                px += e.gamma * 0.5; // تحريك حسب ميلان الجهاز
+                px = Math.max(10, Math.min(285, px));
+            }});
+        }}
+
         draw();
     </script>
     """
-    components.html(game_js, height=620)
-    if st.button("🛑 EXIT RACE"): st.session_state.page = 'main_menu'; st.rerun()
+    components.html(game_js, height=600)
+    if st.button(T['back']): st.session_state.page = 'home'; st.rerun()
+    
