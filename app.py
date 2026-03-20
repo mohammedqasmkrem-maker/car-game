@@ -1,123 +1,169 @@
-import streamlit as st
-import streamlit.components.v1 as components
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Pro Car Game</title>
 
-# 1. إعداد الصفحة - لمرة واحدة فقط لمنع الأخطاء
-st.set_page_config(page_title="Royal Racer", layout="wide", initial_sidebar_state="collapsed")
-
-# 2. نظام الذاكرة المستقر (بناء الهيكل)
-if 'money' not in st.session_state: st.session_state.money = 25577
-if 'score' not in st.session_state: st.session_state.score = 0
-if 'page' not in st.session_state: st.session_state.page = 'home'
-if 'car_color' not in st.session_state: st.session_state.car_color = '#00fbff'
-
-# 3. التصميم العام (Black & Neon)
-st.markdown(f"""
 <style>
-    .stApp {{ background-color: #050505; color: white; font-family: sans-serif; }}
-    .main-box {{
-        background: rgba(255, 255, 255, 0.05);
-        border: 2px solid {st.session_state.car_color};
-        border-radius: 20px; padding: 20px; text-align: center;
-        box-shadow: 0 0 15px {st.session_state.car_color}44;
-    }}
-    .stButton>button {{
-        background: transparent !important; color: {st.session_state.car_color} !important;
-        border: 2px solid {st.session_state.car_color} !important; border-radius: 10px !important;
-        width: 100%; font-weight: bold;
-    }}
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: Arial;
+  background: black;
+}
+
+/* خلفية */
+#bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(#0f2027, #203a43, #2c5364);
+  animation: bgMove 10s infinite alternate;
+}
+
+@keyframes bgMove {
+  from { filter: brightness(0.7); }
+  to { filter: brightness(1.2); }
+}
+
+/* الطريق */
+#road {
+  position: absolute;
+  width: 320px;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111;
+  border-left: 4px solid cyan;
+  border-right: 4px solid cyan;
+  box-shadow: 0 0 30px cyan;
+  overflow: hidden;
+}
+
+/* خطوط الطريق */
+.line {
+  position: absolute;
+  width: 6px;
+  height: 60px;
+  background: white;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: moveLine 0.4s linear infinite;
+}
+
+@keyframes moveLine {
+  from { top: -60px; }
+  to { top: 100%; }
+}
+
+/* السيارة */
+#car {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  filter: drop-shadow(0 0 20px cyan);
+}
+
+/* UI */
+#ui {
+  position: absolute;
+  width: 100%;
+  top: 10px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.box {
+  background: rgba(0,0,0,0.5);
+  padding: 10px 20px;
+  border-radius: 15px;
+  color: cyan;
+  font-size: 20px;
+  border: 1px solid cyan;
+  box-shadow: 0 0 15px cyan;
+}
+
+/* أزرار */
+.controls {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn {
+  width: 90px;
+  height: 90px;
+  margin: 20px;
+  border-radius: 50%;
+  background: rgba(0,255,255,0.1);
+  color: white;
+  font-size: 35px;
+  text-align: center;
+  line-height: 90px;
+  border: 2px solid cyan;
+  backdrop-filter: blur(10px);
+  transition: 0.2s;
+}
+
+.btn:active {
+  transform: scale(1.2);
+  background: cyan;
+  color: black;
+  box-shadow: 0 0 20px cyan;
+}
 </style>
-""", unsafe_allow_html=True)
+</head>
 
-# --- [ الصفحة الرئيسية ] ---
-if st.session_state.page == 'home':
-    st.markdown(f'<div class="main-box">', unsafe_allow_html=True)
-    st.title("🏎️ NEON RACER PRO")
-    st.write(f"💰 المحفظة: ${st.session_state.money} | 🏆 السكور: {st.session_state.score}")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🏁 ابدأ السباق"): 
-            st.session_state.page = 'play'
-            st.rerun()
-    with col2:
-        if st.button("⚙️ الكراج الملكي"): 
-            st.session_state.page = 'garage'
-            st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+<body>
 
-# --- [ الكراج الدوار ] ---
-elif st.session_state.page == 'garage':
-    st.markdown('<div class="main-box">', unsafe_allow_html=True)
-    st.header("⚙️ كراج التعديل")
-    
-    # محاكاة السيارة الدوارة بصرياً
-    garage_visual = f"""
-    <div style="height:200px; display:flex; justify-content:center; align-items:center;">
-        <div style="width:140px; height:70px; background:{st.session_state.car_color}; border-radius:10px; 
-        box-shadow:0 0 40px {st.session_state.car_color}; animation: rotate 3s linear infinite;"></div>
-    </div>
-    <style> @keyframes rotate {{ from{{transform:rotateY(0deg);}} to{{transform:rotateY(360deg);}} }} </style>
-    """
-    components.html(garage_visual, height=220)
-    
-    st.session_state.car_color = st.color_picker("اختر لون سيارتك", st.session_state.car_color)
-    
-    if st.button("🔙 حفظ ورجوع"): 
-        st.session_state.page = 'home'
-        st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+<div id="bg"></div>
 
-# --- [ محرك السباق ] ---
-elif st.session_state.page == 'play':
-    game_code = f"""
-    <div style="display:flex; justify-content:space-between; color:{st.session_state.car_color}; font-weight:bold; margin-bottom:5px;">
-        <span>POINTS: <span id="s">0</span></span>
-        <span>CASH: $<span id="m">0</span></span>
-    </div>
-    <canvas id="rc" width="340" height="500" style="border:2px solid {st.session_state.car_color}; border-radius:15px; background:#000; touch-action:none;"></canvas>
-    
-    <script>
-        const c=document.getElementById("rc"), ctx=c.getContext("2d");
-        let px=145, py=400, score=0, cash=0, items=[], active=true;
+<div id="road">
+  <div class="line"></div>
+</div>
 
-        function update() {{
-            if(!active) return;
-            ctx.fillStyle="#000"; ctx.fillRect(0,0,340,500);
-            
-            // سيارة اللاعب
-            ctx.shadowBlur=15; ctx.shadowColor="{st.session_state.car_color}"; ctx.fillStyle="{st.session_state.car_color}";
-            ctx.beginPath(); ctx.roundRect(px, py, 45, 80, 8); ctx.fill();
+<img id="car" src="https://cdn-icons-png.flaticon.com/512/743/743922.png">
 
-            if(Math.random()<0.02) items.push({{t:'e', x:Math.random()*260+20, y:-100}});
-            if(Math.random()<0.01) items.push({{t:'c', x:Math.random()*260+20, y:-100}});
+<div id="ui">
+  <div class="box">⭐ <span id="score">0</span></div>
+  <div class="box">⚡ <span id="speed">0</span></div>
+</div>
 
-            items.forEach((it, i)=>{{
-                it.y += 7;
-                if(it.t=='e') {{
-                    ctx.shadowBlur=0; ctx.fillStyle="#555";
-                    ctx.beginPath(); ctx.roundRect(it.x, it.y, 45, 80, 5); ctx.fill();
-                    if(it.y+70>py && it.y<py+70 && it.x+40>px && it.x<px+40) {{ active=false; alert("Game Over!"); location.reload(); }}
-                }} else {{
-                    ctx.shadowBlur=10; ctx.shadowColor="gold"; ctx.fillStyle="gold";
-                    ctx.beginPath(); ctx.arc(it.x+15, it.y+15, 12, 0, 7); ctx.fill();
-                    if(it.y+30>py && it.y<py+80 && it.x+30>px && it.x<px+40) {{ items.splice(i,1); cash+=100; }}
-                }}
-                if(it.y>550) {{ items.splice(i,1); if(it.t=='e') score+=10; }}
-            }});
-            document.getElementById("s").innerText = score;
-            document.getElementById("m").innerText = cash;
-            requestAnimationFrame(update);
-        }}
+<div class="controls">
+  <div class="btn" id="left">⬅</div>
+  <div class="btn" id="right">➡</div>
+</div>
 
-        c.ontouchmove = (e) => {{
-            let r = c.getBoundingClientRect();
-            px = Math.max(20, Math.min(275, e.touches[0].clientX - r.left - 22));
-            e.preventDefault();
-        }};
-        update();
-    </script>
-    """
-    components.html(game_code, height=600)
-    if st.button("🔙 إنهاء السباق"): 
-        st.session_state.page = 'home'
-        st.rerun()
+<script>
+let car = document.getElementById("car");
+let score = 0;
+let speed = 0;
+
+/* تحكم */
+document.getElementById("left").onclick = () => {
+  car.style.left = (car.offsetLeft - 25) + "px";
+};
+
+document.getElementById("right").onclick = () => {
+  car.style.left = (car.offsetLeft + 25) + "px";
+};
+
+/* تحديث */
+function gameLoop() {
+  score++;
+  speed += 0.05;
+
+  document.getElementById("score").innerText = score;
+  document.getElementById("speed").innerText = Math.floor(speed);
+
+  requestAnimationFrame(gameLoop);
+}
+gameLoop();
+</script>
+
+</body>
+</html>
