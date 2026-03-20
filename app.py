@@ -1,149 +1,124 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 1. إعدادات الصفحة والذاكرة
-st.set_page_config(page_title="Royal Racer Ultimate", layout="wide")
+# إعدادات أساسية لضمان عدم حدوث خطأ NameError
+st.set_page_config(page_title="Royal Racer Pro", layout="wide")
 
 if 'score' not in st.session_state: st.session_state.score = 0
-if 'money' not in st.session_state: st.session_state.money = 0
+if 'money' not in st.session_state: st.session_state.money = 1000
 if 'page' not in st.session_state: st.session_state.page = 'home'
+if 'color' not in st.session_state: st.session_state.color = "#FFD700"
 
-# 2. تصميم الواجهة (الخلفية والأزرار)
-st.markdown("""
+# تصميم الواجهة الملكية (CSS)
+st.markdown(f"""
     <style>
-    .stApp {
-        background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), 
-                    url("https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200");
-        background-size: cover;
-    }
-    .royal-panel {
+    .stApp {{ background: #0e1117; color: white; }}
+    .royal-box {{
         background: rgba(255, 215, 0, 0.1);
-        backdrop-filter: blur(15px);
-        border: 2px solid #D4AF37;
-        border-radius: 30px;
-        padding: 40px;
+        border: 2px solid {st.session_state.color};
+        border-radius: 20px;
+        padding: 25px;
         text-align: center;
-        box-shadow: 0 0 50px rgba(212, 175, 55, 0.3);
-    }
-    .stButton>button {
-        background: linear-gradient(90deg, #D4AF37, #F9EDAD);
+        box-shadow: 0 0 20px {st.session_state.color}55;
+    }}
+    .stButton>button {{
+        background: {st.session_state.color};
         color: black !important;
         font-weight: bold;
-        font-size: 24px;
-        border-radius: 15px;
-        height: 60px;
+        border-radius: 10px;
         width: 100%;
-        border: none;
-    }
+    }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- الغرفة 1: القائمة الرئيسية ---
+# --- الصفحة الرئيسية ---
 if st.session_state.page == 'home':
-    st.markdown('<div class="royal-panel">', unsafe_allow_html=True)
-    st.markdown("<h1 style='color:#D4AF37; font-size:50px;'>🔱 ROYAL RACER PRO 🔱</h1>", unsafe_allow_html=True)
-    st.write(f"### 🏆 سكورك العالي: {st.session_state.score} | 💰 محفظتك: {st.session_state.money}")
+    st.markdown('<div class="royal-box">', unsafe_allow_html=True)
+    st.title("🔱 ROYAL RACER PRO 🔱")
+    st.subheader(f"💰 المحفظة: {st.session_state.money} | 🏆 القمة: {st.session_state.score}")
     
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("🏁 انطلاق للسباق"):
+        if st.button("🏁 دخول الميدان"):
             st.session_state.page = 'play'
             st.rerun()
     with col2:
-        if st.button("🛠️ كراج التعديلات"):
+        if st.button("🛠️ كراج النخبة"):
             st.session_state.page = 'garage'
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- الغرفة 2: الكراج ---
+# --- الكراج (تغيير اللون) ---
 elif st.session_state.page == 'garage':
-    st.markdown('<div class="royal-panel">', unsafe_allow_html=True)
-    st.header("🛠️ كراج النخبة")
-    st.write("هنا يمكنك تطوير سيارتك (قريباً)")
-    if st.button("🔙 العودة للقائمة"):
+    st.markdown('<div class="royal-box">', unsafe_allow_html=True)
+    st.header("🛠️ كراج التعديلات")
+    st.session_state.color = st.color_picker("اختر لون سيارتك الملكي", st.session_state.color)
+    st.write("تم تفعيل النيترو والمحرك الذهبي!")
+    if st.button("🔙 حفظ والعودة"):
         st.session_state.page = 'home'
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- الغرفة 3: ميدان السباق (هنا الشغل الثقيل) ---
+# --- ميدان السباق (اللعبة المطورة) ---
 elif st.session_state.page == 'play':
-    game_html = """
-    <div style="display:flex; justify-content:space-around; color:#D4AF37; font-family:Arial; font-weight:bold; font-size:25px; margin-bottom:10px;">
-        <span>🏁 SCORE: <span id="sc">0</span></span>
-        <span id="nitro-ui" style="color:white;">⚡ NITRO: READY</span>
+    # كود JS متطور للرسم الحقيقي
+    game_js = f"""
+    <div style="display:flex; justify-content:space-around; color:{st.session_state.color}; font-size:22px; font-weight:bold; margin-bottom:10px;">
+        <span>🏆 SCORE: <span id="s">0</span></span>
+        <span id="n_ui" style="color:white;">⚡ NITRO: READY</span>
     </div>
-    <canvas id="gameCanvas" width="350" height="550" style="border:5px solid #D4AF37; border-radius:20px; background:#111; box-shadow: 0 0 30px #D4AF37;"></canvas>
+    <canvas id="rc" width="320" height="500" style="border:4px solid {st.session_state.color}; border-radius:15px; background:#1a1a1a;"></canvas>
     
     <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        let px = 150, py = 430, score = 0, enemies = [], speed = 6, nitro = false;
+        const c=document.getElementById("rc"), ctx=c.getContext("2d");
+        let px=135, py=400, score=0, enemies=[], nitro=false, speed=7;
 
-        function drawCar(x, y, color, isPlayer) {
-            // جسم السيارة
+        function drawCar(x, y, color, isPlayer) {{
             ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.roundRect(x, y, 50, 90, 12);
-            ctx.fill();
+            ctx.beginPath(); ctx.roundRect(x, y, 50, 85, 10); ctx.fill(); // جسم السيارة
+            ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(x+5, y+15, 40, 20); // زجاج
+            if(isPlayer && nitro) {{ // لهب النيترو
+                ctx.fillStyle="orange"; ctx.fillRect(x+10, y+85, 10, 15); ctx.fillRect(x+30, y+85, 10, 15);
+            }}
+        }}
+
+        function update() {{
+            ctx.fillStyle="#1a1a1a"; ctx.fillRect(0,0,320,500); // خلفية الطريق
+            // رسم خطوط الطريق المتحركة
+            ctx.strokeStyle="#333"; ctx.setLineDash([20, 20]);
+            ctx.beginPath(); ctx.moveTo(160,0); ctx.lineTo(160,500); ctx.stroke();
+
+            drawCar(px, py, "{st.session_state.color}", true);
+
+            if(Math.random()<0.02) enemies.push({{x:Math.random()*260, y:-100, c:"#fff"}});
             
-            // الزجاج
-            ctx.fillStyle = "rgba(0,0,0,0.7)";
-            ctx.fillRect(x+5, y+20, 40, 25);
-            
-            // الأنوار
-            ctx.fillStyle = isPlayer ? "#0ff" : "#f00";
-            ctx.fillRect(x+5, y, 10, 5); ctx.fillRect(x+35, y, 10, 5);
-            
-            if(isPlayer && nitro) {
-                ctx.fillStyle = "orange";
-                ctx.fillRect(x+10, y+90, 10, 30); ctx.fillRect(x+30, y+90, 10, 30);
-            }
-        }
-
-        function update() {
-            ctx.fillStyle = "#222"; ctx.fillRect(0,0,350,550);
-            // خطوط الطريق
-            ctx.strokeStyle = "#444"; ctx.setLineDash([30, 30]); ctx.lineWidth = 5;
-            ctx.beginPath(); ctx.moveTo(175, 0); ctx.lineTo(175, 550); ctx.stroke();
-
-            drawCar(px, py, "#D4AF37", true); // سيارتك
-
-            if(Math.random() < 0.02) {
-                enemies.push({x: Math.random()*290, y: -100, c: "#fff"});
-            }
-
-            enemies.forEach((en, i) => {
-                en.y += nitro ? speed * 2.5 : speed;
+            enemies.forEach((en, i)=>{{
+                en.y += nitro ? 15 : speed;
                 drawCar(en.x, en.y, en.c, false);
-
-                // تصادم
-                if(en.y+80 > py && en.y < py+80 && en.x+45 > px && en.x < px+45) {
-                    alert("Game Over! Score: " + score);
-                    location.reload();
-                }
-                if(en.y > 550) { enemies.splice(i, 1); score += 10; }
-            });
-
-            document.getElementById("sc").innerText = score;
+                
+                if(en.y+80 > py && en.y < py+80 && en.x+45 > px && en.x < px+45) {{
+                    alert("نهاية السباق! السكور: " + score); location.reload();
+                }}
+                if(en.y > 500) {{ enemies.splice(i,1); score += 10; }}
+            }});
+            document.getElementById("s").innerText = score;
             requestAnimationFrame(update);
-        }
+        }}
 
-        // تحكم لمس ناعم جداً
-        canvas.addEventListener("touchstart", (e) => {
-            let t = e.touches[0].clientX - canvas.offsetLeft;
-            if(e.touches.length > 1) { 
-                nitro = true; speed = 12; 
-                document.getElementById("nitro-ui").style.color = "orange";
-                setTimeout(()=>{ nitro=false; speed=6; document.getElementById("nitro-ui").style.color="white"; }, 2000);
-            }
-            px = (t < 175) ? Math.max(10, px-70) : Math.min(290, px+70);
-        });
-
+        c.ontouchstart = (e) => {{
+            let tx = e.touches[0].clientX - c.offsetLeft;
+            if(e.touches.length > 1) {{ // لمستين لتفعيل النيترو
+                nitro = true; document.getElementById("n_ui").style.color="orange";
+                setTimeout(()=>{{nitro=false; document.getElementById("n_ui").style.color="white";}}, 2000);
+            }} else {{
+                px = (tx < 160) ? Math.max(10, px-60) : Math.min(260, px+60);
+            }}
+        }};
         update();
     </script>
     """
-    components.html(game_html, height=650)
-    if st.button("❌ إنهاء السباق"):
+    components.html(game_js, height=600)
+    if st.button("❌ إنهاء والعودة للكراج"):
         st.session_state.page = 'home'
         st.rerun()
     
